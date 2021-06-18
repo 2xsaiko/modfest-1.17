@@ -6,14 +6,14 @@ import net.minecraft.block.Material;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
-import trucc.block.ZiplineBlock;
+import trucc.block.ZiplineAnchorBlock;
 
 import static trucc.Trucc.MOD_ID;
 
 public class Blocks {
-    public final ZiplineBlock zipline = new ZiplineBlock(AbstractBlock.Settings.of(Material.METAL, MapColor.GRAY));
+    public final ZiplineAnchorBlock ziplineAnchor = new ZiplineAnchorBlock(AbstractBlock.Settings.of(Material.METAL, MapColor.GRAY));
 
     public void register() {
-        Registry.register(Registry.BLOCK, new Identifier(MOD_ID, "zipline"), this.zipline);
+        Registry.register(Registry.BLOCK, new Identifier(MOD_ID, "zipline"), this.ziplineAnchor);
     }
 }
