@@ -13,9 +13,8 @@
   "icon": "assets/trucc/icon.png",
   "environment": "*",
   "entrypoints": {
-    "main": [
-      "trucc.Trucc::initialize"
-    ]
+    "main": ["trucc.Trucc::initialize"],
+    "client": ["trucc.client.TruccClient::initialize"]
   },
   "mixins": [
     "trucc.mixins.json"
