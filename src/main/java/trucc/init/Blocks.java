@@ -14,6 +14,6 @@ public class Blocks {
     public final ZiplineAnchorBlock ziplineAnchor = new ZiplineAnchorBlock(AbstractBlock.Settings.of(Material.METAL, MapColor.GRAY));
 
     public void register() {
-        Registry.register(Registry.BLOCK, new Identifier(MOD_ID, "zipline"), this.ziplineAnchor);
+        Registry.register(Registry.BLOCK, new Identifier(MOD_ID, "zipline_anchor"), this.ziplineAnchor);
     }
 }
