@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "trucc",
+  "version": "${version}",
+  "name": "T.R.U.C.C.",
+  "description": "wip",
+  "authors": ["2xsaiko", "hydos", "HalfOf2", "Zundrel"],
+  "contact": {
+    "homepage": "https://github.com/2xsaiko/modfest-1.17",
+    "sources": "https://github.com/2xsaiko/modfest-1.17"
+  },
+  "license": "MIT",
+  "icon": "assets/trucc/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "trucc.Trucc::initialize"
+    ]
+  },
+  "mixins": [
+    "trucc.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.11.3",
+    "fabric": "*",
+    "minecraft": "1.17.x",
+    "java": ">=16"
+  }
+}
