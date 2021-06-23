@@ -26,6 +26,7 @@ import trucc.util.Catenary;
 
 import net.dblsaiko.qcommon.croco.Vec3;
 
+import static java.lang.Math.min;
 import static trucc.Trucc.MOD_ID;
 
 public class CableRenderer {
@@ -119,6 +120,7 @@ public class CableRenderer {
 
         float tw = 16.0f;
         float th = 64.0f;
+        float partialHeight = min(64, 16 * to.sub(from).getLength()) / th;
 
         int lightFrom = WorldRenderer.getLightmapCoordinates(ctx.world(), new BlockPos(from.toMCVec3i()));
         int lightTo = WorldRenderer.getLightmapCoordinates(ctx.world(), new BlockPos(to.toMCVec3i()));
@@ -218,7 +220,7 @@ public class CableRenderer {
         buffer
             .vertex(mat, to2.x, to2.y, to2.z)
             .color(255, 255, 255, 255)
-            .texture(2 / tw, 64 / th)
+            .texture(2 / tw, partialHeight)
             .overlay(OverlayTexture.DEFAULT_UV)
             .light(lightFrom)
             .normal(normal1.x, normal1.y, normal1.z)
@@ -226,7 +228,7 @@ public class CableRenderer {
         buffer
             .vertex(mat, to1.x, to1.y, to1.z)
             .color(255, 255, 255, 255)
-            .texture(0 / tw, 64 / th)
+            .texture(0 / tw, partialHeight)
             .overlay(OverlayTexture.DEFAULT_UV)
             .light(lightFrom)
             .normal(normal1.x, normal1.y, normal1.z)
@@ -252,7 +254,7 @@ public class CableRenderer {
         buffer
             .vertex(mat, to3.x, to3.y, to3.z)
             .color(255, 255, 255, 255)
-            .texture(4 / tw, 64 / th)
+            .texture(4 / tw, partialHeight)
             .overlay(OverlayTexture.DEFAULT_UV)
             .light(lightFrom)
             .normal(normal2.x, normal2.y, normal2.z)
@@ -260,7 +262,7 @@ public class CableRenderer {
         buffer
             .vertex(mat, to2.x, to2.y, to2.z)
             .color(255, 255, 255, 255)
-            .texture(2 / tw, 64 / th)
+            .texture(2 / tw, partialHeight)
             .overlay(OverlayTexture.DEFAULT_UV)
             .light(lightFrom)
             .normal(normal2.x, normal2.y, normal2.z)
@@ -286,7 +288,7 @@ public class CableRenderer {
         buffer
             .vertex(mat, to4.x, to4.y, to4.z)
             .color(255, 255, 255, 255)
-            .texture(6 / tw, 64 / th)
+            .texture(6 / tw, partialHeight)
             .overlay(OverlayTexture.DEFAULT_UV)
             .light(lightFrom)
             .normal(-normal1.x, -normal1.y, -normal1.z)
@@ -294,7 +296,7 @@ public class CableRenderer {
         buffer
             .vertex(mat, to3.x, to3.y, to3.z)
             .color(255, 255, 255, 255)
-            .texture(4 / tw, 64 / th)
+            .texture(4 / tw, partialHeight)
             .overlay(OverlayTexture.DEFAULT_UV)
             .light(lightFrom)
             .normal(-normal1.x, -normal1.y, -normal1.z)
@@ -320,7 +322,7 @@ public class CableRenderer {
         buffer
             .vertex(mat, to1.x, to1.y, to1.z)
             .color(255, 255, 255, 255)
-            .texture(8 / tw, 64 / th)
+            .texture(8 / tw, partialHeight)
             .overlay(OverlayTexture.DEFAULT_UV)
             .light(lightFrom)
             .normal(-normal2.x, -normal2.y, -normal2.z)
@@ -328,7 +330,7 @@ public class CableRenderer {
         buffer
             .vertex(mat, to4.x, to4.y, to4.z)
             .color(255, 255, 255, 255)
-            .texture(6 / tw, 64 / th)
+            .texture(6 / tw, partialHeight)
             .overlay(OverlayTexture.DEFAULT_UV)
             .light(lightFrom)
             .normal(-normal2.x, -normal2.y, -normal2.z)
