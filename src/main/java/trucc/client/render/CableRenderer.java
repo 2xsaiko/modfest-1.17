@@ -1,13 +1,16 @@
 package trucc.client.render;
 
+import net.minecraft.block.BlockState;
 import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.state.property.Properties;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
@@ -22,6 +25,7 @@ import java.util.WeakHashMap;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import trucc.Trucc;
 import trucc.util.Catenary;
 
 import net.dblsaiko.qcommon.croco.Vec3;
@@ -71,13 +75,25 @@ public class CableRenderer {
     }
 
     public void render(WorldRenderContext ctx) {
+        Trucc trucc = Trucc.getInstance();
+
         for (Set<BlockPos> connection : this.connections) {
             Iterator<BlockPos> iterator = connection.iterator();
             var pos1 = iterator.next();
             var pos2 = iterator.next();
 
-            Vec3 p1 = Vec3.from(Vec3d.ofCenter(pos1));
-            Vec3 p2 = Vec3.from(Vec3d.ofCenter(pos2));
+            BlockState state1 = ctx.world().getBlockState(pos1);
+            BlockState state2 = ctx.world().getBlockState(pos2);
+
+            if (!state1.isOf(trucc.blocks.ziplineAnchor) || !state2.isOf(trucc.blocks.ziplineAnchor)) {
+                continue;
+            }
+
+            Direction side1 = state1.get(Properties.FACING);
+            Direction side2 = state2.get(Properties.FACING);
+
+            Vec3 p1 = Vec3.from(Vec3d.ofCenter(pos1)).add(this.getSideOffset(side1));
+            Vec3 p2 = Vec3.from(Vec3d.ofCenter(pos2)).add(this.getSideOffset(side2));
             List<Vec3> draw = Catenary.draw(p1, p2, 1.05f * p2.sub(p1).getLength(), 5, 100);
             Vec3 last = null;
 
@@ -89,6 +105,10 @@ public class CableRenderer {
                 last = vec3;
             }
         }
+    }
+
+    private Vec3 getSideOffset(Direction side) {
+        return Vec3.from(side.getOpposite().getVector()).mul(10/32f);
     }
 
     private void renderCableSegment(WorldRenderContext ctx, Vec3 from, Vec3 to) {
