@@ -101,7 +101,7 @@ public class ZiplineAnchorBlockEntity extends BlockEntity implements BlockEntity
         super.readNbt(nbt);
 
         this.otherAnchors = OTHER_ANCHORS_CODEC
-            .decode(NbtOps.INSTANCE, nbt.getCompound("other_anchors"))
+            .decode(NbtOps.INSTANCE, nbt.get("other_anchors"))
             .result()
             .map(Pair::getFirst)
             .orElseGet(HashSet::new);
