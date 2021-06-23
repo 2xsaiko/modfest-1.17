@@ -94,7 +94,8 @@ public class CableRenderer {
 
             Vec3 p1 = Vec3.from(Vec3d.ofCenter(pos1)).add(this.getSideOffset(side1));
             Vec3 p2 = Vec3.from(Vec3d.ofCenter(pos2)).add(this.getSideOffset(side2));
-            List<Vec3> draw = Catenary.draw(p1, p2, 1.05f * p2.sub(p1).getLength(), 5, 100);
+            float length = p2.sub(p1).getLength();
+            List<Vec3> draw = Catenary.draw(p1, p2, 1.05f * length, (int) length, 100);
             Vec3 last = null;
 
             for (Vec3 vec3 : draw) {
