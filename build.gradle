@@ -12,7 +12,6 @@ group = project.maven_group
 
 repositories {
 	maven { url 'https://maven.dblsaiko.net/' }
-	maven { url 'https://lazurite.dev/releases' }
 	maven { url 'https://hephaestus.dev/release' }
 }
 
