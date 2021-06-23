@@ -14,6 +14,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
@@ -139,7 +140,21 @@ public class ZiplineAnchorBlock extends Block implements BlockEntityProvider {
     }
 
     private static VoxelShape rotate(VoxelShape in, Direction d) {
-        // TODO
-        return in;
+        return in.getBoundingBoxes()
+            .stream()
+            .map(el -> rotate(el, d))
+            .map(VoxelShapes::cuboid)
+            .reduce(VoxelShapes.empty(), VoxelShapes::union);
+    }
+
+    private static Box rotate(Box in, Direction d) {
+        return switch (d) {
+            case DOWN -> new Box(in.maxX, 1.0 - in.maxY, 1.0 - in.minZ, in.minX, 1.0 - in.minY, 1.0 - in.maxZ);
+            case UP -> in;
+            case NORTH -> new Box(in.maxX, in.maxZ, 1.0 - in.minY, in.minX, in.minZ, 1.0 - in.maxY);
+            case SOUTH -> new Box(in.maxX, 1.0 - in.maxZ, in.minY, in.minX, 1.0 - in.minZ, in.maxY);
+            case WEST -> new Box(1.0 - in.maxY, in.maxZ, in.minX, 1.0 - in.minY, in.minZ, in.maxX);
+            case EAST -> new Box(in.maxY, 1.0 - in.maxZ, in.minX, in.minY, 1.0 - in.minZ, in.maxX);
+        };
     }
 }
