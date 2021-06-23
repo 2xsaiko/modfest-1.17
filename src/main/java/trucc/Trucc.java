@@ -3,7 +3,9 @@ package trucc;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.util.Identifier;
 
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 
 import java.util.Objects;
 
@@ -11,6 +13,7 @@ import trucc.init.BlockEntityTypes;
 import trucc.init.Blocks;
 import trucc.init.EntityTypes;
 import trucc.init.Items;
+import trucc.world.CableTracker;
 
 public class Trucc {
     public static final String MOD_ID = "trucc";
@@ -32,6 +35,9 @@ public class Trucc {
         instance.entityTypes.register();
 
         INSTANCE = instance;
+
+        ServerTickEvents.END_WORLD_TICK.register(world -> CableTracker.get(world).tick());
+        ClientTickEvents.END_WORLD_TICK.register(world -> CableTracker.get(world).tick());
     }
 
     public static Trucc getInstance() {

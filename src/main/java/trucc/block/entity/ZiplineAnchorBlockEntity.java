@@ -21,6 +21,7 @@ import java.util.Set;
 import org.jetbrains.annotations.Nullable;
 import trucc.Trucc;
 import trucc.client.render.CableRenderer;
+import trucc.world.CableTracker;
 
 public class ZiplineAnchorBlockEntity extends BlockEntity implements BlockEntityClientSerializable {
     // too lazy to hand serialize these lmao
@@ -64,6 +65,7 @@ public class ZiplineAnchorBlockEntity extends BlockEntity implements BlockEntity
 
         this.otherAnchors.add(pos);
         anchor.otherAnchors.add(this.pos);
+        CableTracker.get(world).add(this.pos, pos);
         this.markDirty();
         this.sync();
         anchor.markDirty();
@@ -76,9 +78,9 @@ public class ZiplineAnchorBlockEntity extends BlockEntity implements BlockEntity
         super.markRemoved();
         World world = this.world;
 
-        if (world != null && this.world.isClient() && this.world instanceof ClientWorld cw) {
-            CableRenderer cr = CableRenderer.get(cw);
-            cr.removeAll(this.pos);
+        if (world != null) {
+            CableTracker ct = CableTracker.get(world);
+            ct.removeAll(this.pos);
         }
     }
 
@@ -87,11 +89,11 @@ public class ZiplineAnchorBlockEntity extends BlockEntity implements BlockEntity
         super.cancelRemoval();
         World world = this.world;
 
-        if (world != null && this.world.isClient() && this.world instanceof ClientWorld cw) {
-            CableRenderer cr = CableRenderer.get(cw);
+        if (world != null) {
+            CableTracker ct = CableTracker.get(world);
 
             for (BlockPos other : this.otherAnchors) {
-                cr.add(this.pos, other);
+                ct.add(this.pos, other);
             }
         }
     }
@@ -100,11 +102,13 @@ public class ZiplineAnchorBlockEntity extends BlockEntity implements BlockEntity
     public void readNbt(NbtCompound nbt) {
         super.readNbt(nbt);
 
-        this.otherAnchors = OTHER_ANCHORS_CODEC
+        Set<BlockPos> newAnchors = OTHER_ANCHORS_CODEC
             .decode(NbtOps.INSTANCE, nbt.get("other_anchors"))
             .result()
             .map(Pair::getFirst)
             .orElseGet(HashSet::new);
+
+        this.setOtherAnchors(newAnchors);
     }
 
     @Override
@@ -123,18 +127,7 @@ public class ZiplineAnchorBlockEntity extends BlockEntity implements BlockEntity
             .map(Pair::getFirst)
             .orElseGet(HashSet::new);
 
-        World world = this.world;
-
-        if (world != null && this.world.isClient() && this.world instanceof ClientWorld cw) {
-            CableRenderer cr = CableRenderer.get(cw);
-
-            newAnchors.stream().filter(el -> !this.otherAnchors.contains(el))
-                .forEach(el -> cr.add(this.pos, el));
-            this.otherAnchors.stream().filter(el -> !newAnchors.contains(el))
-                .forEach(el -> cr.remove(this.pos, el));
-        }
-
-        this.otherAnchors = newAnchors;
+        this.setOtherAnchors(newAnchors);
     }
 
     @Override
@@ -143,5 +136,20 @@ public class ZiplineAnchorBlockEntity extends BlockEntity implements BlockEntity
         }));
 
         return tag;
+    }
+
+    private void setOtherAnchors(Set<BlockPos> newAnchors) {
+        World world = this.world;
+
+        if (world != null) {
+            CableTracker cr = CableTracker.get(world);
+
+            newAnchors.stream().filter(el -> !this.otherAnchors.contains(el))
+                .forEach(el -> cr.add(this.pos, el));
+            this.otherAnchors.stream().filter(el -> !newAnchors.contains(el))
+                .forEach(el -> cr.remove(this.pos, el));
+        }
+
+        this.otherAnchors = newAnchors;
     }
 }

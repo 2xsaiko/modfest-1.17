@@ -15,18 +15,15 @@ import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 import trucc.Trucc;
 import trucc.util.Catenary;
+import trucc.world.CableTracker;
 
 import net.dblsaiko.qcommon.croco.Vec3;
 
@@ -39,63 +36,30 @@ public class CableRenderer {
 
     private static final WeakHashMap<ClientWorld, CableRenderer> FOR_WORLD = new WeakHashMap<>();
 
-    private final Set<Set<BlockPos>> connections = new HashSet<>();
-    private final Multimap<BlockPos, Set<BlockPos>> byPos = HashMultimap.create();
+    private final CableTracker tracker;
+
+    public CableRenderer(CableTracker tracker) {
+        this.tracker = tracker;
+    }
 
     public static CableRenderer get(ClientWorld world) {
-        return FOR_WORLD.computeIfAbsent(world, _world -> new CableRenderer());
-    }
-
-    public void add(BlockPos p1, BlockPos p2) {
-        var s = Set.of(p1, p2);
-        this.connections.add(s);
-        this.byPos.put(p1, s);
-        this.byPos.put(p2, s);
-    }
-
-    public void remove(BlockPos p1, BlockPos p2) {
-        var s = Set.of(p1, p2);
-        this.connections.remove(s);
-        this.byPos.remove(p1, s);
-        this.byPos.remove(p2, s);
-    }
-
-    public void removeAll(BlockPos pos) {
-        Collection<Set<BlockPos>> sets = this.byPos.get(pos);
-
-        for (Set<BlockPos> set : sets) {
-            this.connections.remove(set);
-
-            for (BlockPos blockPos : set) {
-                // will this cry because I'm technically iterating over byPos
-                // here?
-                this.byPos.remove(blockPos, set);
-            }
-        }
+        return FOR_WORLD.computeIfAbsent(world, _world -> new CableRenderer(CableTracker.get(_world)));
     }
 
     public void render(WorldRenderContext ctx) {
         Trucc trucc = Trucc.getInstance();
 
-        for (Set<BlockPos> connection : this.connections) {
+        for (Set<BlockPos> connection : this.tracker.getConnections()) {
             Iterator<BlockPos> iterator = connection.iterator();
             var pos1 = iterator.next();
             var pos2 = iterator.next();
 
-            BlockState state1 = ctx.world().getBlockState(pos1);
-            BlockState state2 = ctx.world().getBlockState(pos2);
+            List<Vec3> draw = this.tracker.getSegments(pos1, pos2);
 
-            if (!state1.isOf(trucc.blocks.ziplineAnchor) || !state2.isOf(trucc.blocks.ziplineAnchor)) {
+            if (draw == null) {
                 continue;
             }
 
-            Direction side1 = state1.get(Properties.FACING);
-            Direction side2 = state2.get(Properties.FACING);
-
-            Vec3 p1 = Vec3.from(Vec3d.ofCenter(pos1)).add(this.getSideOffset(side1));
-            Vec3 p2 = Vec3.from(Vec3d.ofCenter(pos2)).add(this.getSideOffset(side2));
-            float length = p2.sub(p1).getLength();
-            List<Vec3> draw = Catenary.draw(p1, p2, 1.05f * length, (int) length, 100);
             Vec3 last = null;
 
             for (Vec3 vec3 : draw) {
