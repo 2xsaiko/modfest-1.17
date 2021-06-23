@@ -20,7 +20,7 @@ public class Catenary {
         Vec3 direction = point2.sub(point1).getNormalized();
         Vec3 planeNormal;
 
-        if (direction.dot(up) > 0.99) {
+        if (Math.abs(direction.dot(up)) > 0.99) {
             planeNormal = new Vec3(1.0f, 0.0f, 0.0f);
         } else {
             planeNormal = direction.cross(up).getNormalized();

@@ -94,7 +94,7 @@ public class CableRenderer {
         Vec3 rel = new Vec3(0.0f, 1.0f, 0.0f);
         Vec3 direction = to.sub(from).getNormalized();
 
-        if (rel.dot(direction) > 0.99) {
+        if (Math.abs(rel.dot(direction)) > 0.99) {
             rel = new Vec3(1.0f, 0.0f, 0.0f);
         }
 
