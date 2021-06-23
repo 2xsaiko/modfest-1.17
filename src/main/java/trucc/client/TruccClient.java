@@ -14,7 +14,7 @@ public class TruccClient {
         Trucc trucc = Trucc.getInstance();
 
         EntityRendererRegistry.INSTANCE.register(trucc.entityTypes.truck, TruckRenderer::new);
-        WorldRenderEvents.BEFORE_ENTITIES.register(ctx -> {
+        WorldRenderEvents.AFTER_ENTITIES.register(ctx -> {
             CableRenderer.get(ctx.world()).render(ctx);
         });
     }

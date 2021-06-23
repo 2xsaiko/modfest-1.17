@@ -15,12 +15,16 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.WeakHashMap;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import trucc.util.Catenary;
+
+import net.dblsaiko.qcommon.croco.Vec3;
 
 import static trucc.Trucc.MOD_ID;
 
@@ -71,253 +75,263 @@ public class CableRenderer {
             var pos1 = iterator.next();
             var pos2 = iterator.next();
 
-            // TODO yeah this needs to be better lol
-            this.renderCableSegment(ctx, Vec3d.ofCenter(pos1), Vec3d.ofCenter(pos2));
+            Vec3 p1 = Vec3.from(Vec3d.ofCenter(pos1));
+            Vec3 p2 = Vec3.from(Vec3d.ofCenter(pos2));
+            List<Vec3> draw = Catenary.draw(p1, p2, 1.05f * p2.sub(p1).getLength(), 5, 100);
+            Vec3 last = null;
+
+            for (Vec3 vec3 : draw) {
+                if (last != null) {
+                    this.renderCableSegment(ctx, last, vec3);
+                }
+
+                last = vec3;
+            }
         }
     }
 
-    private void renderCableSegment(WorldRenderContext ctx, Vec3d from, Vec3d to) {
-        Vec3d rel = new Vec3d(0.0, 1.0, 0.0);
-        Vec3d direction = to.subtract(from).normalize();
+    private void renderCableSegment(WorldRenderContext ctx, Vec3 from, Vec3 to) {
+        Vec3 rel = new Vec3(0.0f, 1.0f, 0.0f);
+        Vec3 direction = to.sub(from).getNormalized();
 
-        if (rel.dotProduct(direction) > 0.99) {
-            rel = new Vec3d(1.0, 0.0, 0.0);
+        if (rel.dot(direction) > 0.99) {
+            rel = new Vec3(1.0f, 0.0f, 0.0f);
         }
 
-        Vec3d fromRel = from.subtract(ctx.camera().getPos());
-        Vec3d toRel = to.subtract(ctx.camera().getPos());
+        Vec3 fromRel = from.sub(Vec3.from(ctx.camera().getPos()));
+        Vec3 toRel = to.sub(Vec3.from(ctx.camera().getPos()));
 
-        Vec3d normal1 = rel.crossProduct(direction).normalize();
-        Vec3d normal2 = direction.crossProduct(normal1);
+        Vec3 normal1 = rel.cross(direction).getNormalized();
+        Vec3 normal2 = direction.cross(normal1);
 
-        Vec3d corner1 = normal1.multiply(-WIRE_RADIUS).add(normal2.multiply(-WIRE_RADIUS));
-        Vec3d corner2 = normal1.multiply(-WIRE_RADIUS).add(normal2.multiply(WIRE_RADIUS));
-        Vec3d corner3 = normal1.multiply(WIRE_RADIUS).add(normal2.multiply(WIRE_RADIUS));
-        Vec3d corner4 = normal1.multiply(WIRE_RADIUS).add(normal2.multiply(-WIRE_RADIUS));
-        Vec3d from1 = fromRel.add(corner1);
-        Vec3d from2 = fromRel.add(corner2);
-        Vec3d from3 = fromRel.add(corner3);
-        Vec3d from4 = fromRel.add(corner4);
-        Vec3d to1 = toRel.add(corner1);
-        Vec3d to2 = toRel.add(corner2);
-        Vec3d to3 = toRel.add(corner3);
-        Vec3d to4 = toRel.add(corner4);
+        Vec3 corner1 = normal1.mul(WIRE_RADIUS).add(normal2.mul(-WIRE_RADIUS));
+        Vec3 corner2 = normal1.mul(WIRE_RADIUS).add(normal2.mul(WIRE_RADIUS));
+        Vec3 corner3 = normal1.mul(-WIRE_RADIUS).add(normal2.mul(WIRE_RADIUS));
+        Vec3 corner4 = normal1.mul(-WIRE_RADIUS).add(normal2.mul(-WIRE_RADIUS));
+        Vec3 from1 = fromRel.add(corner1);
+        Vec3 from2 = fromRel.add(corner2);
+        Vec3 from3 = fromRel.add(corner3);
+        Vec3 from4 = fromRel.add(corner4);
+        Vec3 to1 = toRel.add(corner1);
+        Vec3 to2 = toRel.add(corner2);
+        Vec3 to3 = toRel.add(corner3);
+        Vec3 to4 = toRel.add(corner4);
 
         float tw = 16.0f;
         float th = 64.0f;
 
-        int lightFrom = WorldRenderer.getLightmapCoordinates(ctx.world(), new BlockPos(from));
-        int lightTo = WorldRenderer.getLightmapCoordinates(ctx.world(), new BlockPos(to));
-        Vec3d normalFrom = direction.negate();
-        Vec3d normalTo = direction;
+        int lightFrom = WorldRenderer.getLightmapCoordinates(ctx.world(), new BlockPos(from.toMCVec3i()));
+        int lightTo = WorldRenderer.getLightmapCoordinates(ctx.world(), new BlockPos(to.toMCVec3i()));
+        Vec3 normalFrom = direction.negate();
+        Vec3 normalTo = direction;
 
         VertexConsumerProvider consumers = Objects.requireNonNull(ctx.consumers());
-        VertexConsumer buffer = consumers.getBuffer(RenderLayer.getEntityNoOutline(TEXTURE));
+        VertexConsumer buffer = consumers.getBuffer(RenderLayer.getEntitySolid(TEXTURE));
 
         Matrix4f mat = ctx.matrixStack().peek().getModel();
 
         // small quad on from side
         buffer
-            .vertex(mat, (float) from1.x, (float) from1.y, (float) from2.z)
+            .vertex(mat, from1.x, from1.y, from1.z)
             .color(255, 255, 255, 255)
             .texture(8 / tw, 0 / th)
             .overlay(OverlayTexture.DEFAULT_UV)
             .light(lightFrom)
-            .normal((float) normalFrom.x, (float) normalFrom.y, (float) normalFrom.z)
+            .normal(normalFrom.x, normalFrom.y, normalFrom.z)
             .next();
         buffer
-            .vertex(mat, (float) from2.x, (float) from2.y, (float) from2.z)
-            .color(255, 255, 255, 255)
-            .texture(8 / tw, 2 / th)
-            .overlay(OverlayTexture.DEFAULT_UV)
-            .light(lightFrom)
-            .normal((float) normalFrom.x, (float) normalFrom.y, (float) normalFrom.z)
-            .next();
-        buffer
-            .vertex(mat, (float) from3.x, (float) from3.y, (float) from3.z)
-            .color(255, 255, 255, 255)
-            .texture(10 / tw, 2 / th)
-            .overlay(OverlayTexture.DEFAULT_UV)
-            .light(lightFrom)
-            .normal((float) normalFrom.x, (float) normalFrom.y, (float) normalFrom.z)
-            .next();
-        buffer
-            .vertex(mat, (float) from4.x, (float) from4.y, (float) from4.z)
+            .vertex(mat, from4.x, from4.y, from4.z)
             .color(255, 255, 255, 255)
             .texture(10 / tw, 0 / th)
             .overlay(OverlayTexture.DEFAULT_UV)
             .light(lightFrom)
-            .normal((float) normalFrom.x, (float) normalFrom.y, (float) normalFrom.z)
+            .normal(normalFrom.x, normalFrom.y, normalFrom.z)
+            .next();
+        buffer
+            .vertex(mat, from3.x, from3.y, from3.z)
+            .color(255, 255, 255, 255)
+            .texture(10 / tw, 2 / th)
+            .overlay(OverlayTexture.DEFAULT_UV)
+            .light(lightFrom)
+            .normal(normalFrom.x, normalFrom.y, normalFrom.z)
+            .next();
+        buffer
+            .vertex(mat, from2.x, from2.y, from2.z)
+            .color(255, 255, 255, 255)
+            .texture(8 / tw, 2 / th)
+            .overlay(OverlayTexture.DEFAULT_UV)
+            .light(lightFrom)
+            .normal(normalFrom.x, normalFrom.y, normalFrom.z)
             .next();
 
         // small quad on to side
         buffer
-            .vertex(mat, (float) to1.x, (float) to1.y, (float) to2.z)
+            .vertex(mat, to1.x, to1.y, to1.z)
             .color(255, 255, 255, 255)
             .texture(8 / tw, 0 / th)
             .overlay(OverlayTexture.DEFAULT_UV)
             .light(lightTo)
-            .normal((float) normalTo.x, (float) normalTo.y, (float) normalTo.z)
+            .normal(normalTo.x, normalTo.y, normalTo.z)
             .next();
         buffer
-            .vertex(mat, (float) to4.x, (float) to4.y, (float) to4.z)
-            .color(255, 255, 255, 255)
-            .texture(10 / tw, 0 / th)
-            .overlay(OverlayTexture.DEFAULT_UV)
-            .light(lightTo)
-            .normal((float) normalTo.x, (float) normalTo.y, (float) normalTo.z)
-            .next();
-        buffer
-            .vertex(mat, (float) to3.x, (float) to3.y, (float) to3.z)
-            .color(255, 255, 255, 255)
-            .texture(10 / tw, 2 / th)
-            .overlay(OverlayTexture.DEFAULT_UV)
-            .light(lightTo)
-            .normal((float) normalTo.x, (float) normalTo.y, (float) normalTo.z)
-            .next();
-        buffer
-            .vertex(mat, (float) to2.x, (float) to2.y, (float) to2.z)
+            .vertex(mat, to2.x, to2.y, to2.z)
             .color(255, 255, 255, 255)
             .texture(8 / tw, 2 / th)
             .overlay(OverlayTexture.DEFAULT_UV)
             .light(lightTo)
-            .normal((float) normalTo.x, (float) normalTo.y, (float) normalTo.z)
+            .normal(normalTo.x, normalTo.y, normalTo.z)
+            .next();
+        buffer
+            .vertex(mat, to3.x, to3.y, to3.z)
+            .color(255, 255, 255, 255)
+            .texture(10 / tw, 2 / th)
+            .overlay(OverlayTexture.DEFAULT_UV)
+            .light(lightTo)
+            .normal(normalTo.x, normalTo.y, normalTo.z)
+            .next();
+        buffer
+            .vertex(mat, to4.x, to4.y, to4.z)
+            .color(255, 255, 255, 255)
+            .texture(10 / tw, 0 / th)
+            .overlay(OverlayTexture.DEFAULT_UV)
+            .light(lightTo)
+            .normal(normalTo.x, normalTo.y, normalTo.z)
             .next();
 
         // side 1
         buffer
-            .vertex(mat, (float) from1.x, (float) from1.y, (float) from2.z)
+            .vertex(mat, from1.x, from1.y, from1.z)
             .color(255, 255, 255, 255)
             .texture(0 / tw, 0 / th)
             .overlay(OverlayTexture.DEFAULT_UV)
             .light(lightFrom)
-            .normal((float) normal1.x, (float) normal1.y, (float) normal1.z)
+            .normal(normal1.x, normal1.y, normal1.z)
             .next();
         buffer
-            .vertex(mat, (float) from2.x, (float) from2.y, (float) from2.z)
+            .vertex(mat, from2.x, from2.y, from2.z)
             .color(255, 255, 255, 255)
             .texture(2 / tw, 0 / th)
             .overlay(OverlayTexture.DEFAULT_UV)
             .light(lightFrom)
-            .normal((float) normal1.x, (float) normal1.y, (float) normal1.z)
+            .normal(normal1.x, normal1.y, normal1.z)
             .next();
         buffer
-            .vertex(mat, (float) to2.x, (float) to2.y, (float) to2.z)
+            .vertex(mat, to2.x, to2.y, to2.z)
             .color(255, 255, 255, 255)
             .texture(2 / tw, 64 / th)
             .overlay(OverlayTexture.DEFAULT_UV)
             .light(lightFrom)
-            .normal((float) normal1.x, (float) normal1.y, (float) normal1.z)
+            .normal(normal1.x, normal1.y, normal1.z)
             .next();
         buffer
-            .vertex(mat, (float) to1.x, (float) to1.y, (float) to1.z)
+            .vertex(mat, to1.x, to1.y, to1.z)
             .color(255, 255, 255, 255)
             .texture(0 / tw, 64 / th)
             .overlay(OverlayTexture.DEFAULT_UV)
             .light(lightFrom)
-            .normal((float) normal1.x, (float) normal1.y, (float) normal1.z)
+            .normal(normal1.x, normal1.y, normal1.z)
             .next();
 
         // side 2
         buffer
-            .vertex(mat, (float) from2.x, (float) from2.y, (float) from2.z)
+            .vertex(mat, from2.x, from2.y, from2.z)
             .color(255, 255, 255, 255)
             .texture(2 / tw, 0 / th)
             .overlay(OverlayTexture.DEFAULT_UV)
             .light(lightFrom)
-            .normal((float) normal2.x, (float) normal2.y, (float) normal2.z)
+            .normal(normal2.x, normal2.y, normal2.z)
             .next();
         buffer
-            .vertex(mat, (float) from3.x, (float) from3.y, (float) from2.z)
+            .vertex(mat, from3.x, from3.y, from3.z)
             .color(255, 255, 255, 255)
             .texture(4 / tw, 0 / th)
             .overlay(OverlayTexture.DEFAULT_UV)
             .light(lightFrom)
-            .normal((float) normal2.x, (float) normal2.y, (float) normal2.z)
+            .normal(normal2.x, normal2.y, normal2.z)
             .next();
         buffer
-            .vertex(mat, (float) to3.x, (float) to3.y, (float) to2.z)
+            .vertex(mat, to3.x, to3.y, to3.z)
             .color(255, 255, 255, 255)
             .texture(4 / tw, 64 / th)
             .overlay(OverlayTexture.DEFAULT_UV)
             .light(lightFrom)
-            .normal((float) normal2.x, (float) normal2.y, (float) normal2.z)
+            .normal(normal2.x, normal2.y, normal2.z)
             .next();
         buffer
-            .vertex(mat, (float) to2.x, (float) to2.y, (float) to1.z)
+            .vertex(mat, to2.x, to2.y, to2.z)
             .color(255, 255, 255, 255)
             .texture(2 / tw, 64 / th)
             .overlay(OverlayTexture.DEFAULT_UV)
             .light(lightFrom)
-            .normal((float) normal2.x, (float) normal2.y, (float) normal2.z)
+            .normal(normal2.x, normal2.y, normal2.z)
             .next();
 
         // side 3
         buffer
-            .vertex(mat, (float) from3.x, (float) from3.y, (float) from3.z)
+            .vertex(mat, from3.x, from3.y, from3.z)
             .color(255, 255, 255, 255)
             .texture(4 / tw, 0 / th)
             .overlay(OverlayTexture.DEFAULT_UV)
             .light(lightFrom)
-            .normal((float) -normal1.x, (float) -normal1.y, (float) -normal1.z)
+            .normal(-normal1.x, -normal1.y, -normal1.z)
             .next();
         buffer
-            .vertex(mat, (float) from4.x, (float) from4.y, (float) from4.z)
+            .vertex(mat, from4.x, from4.y, from4.z)
             .color(255, 255, 255, 255)
             .texture(6 / tw, 0 / th)
             .overlay(OverlayTexture.DEFAULT_UV)
             .light(lightFrom)
-            .normal((float) -normal1.x, (float) -normal1.y, (float) -normal1.z)
+            .normal(-normal1.x, -normal1.y, -normal1.z)
             .next();
         buffer
-            .vertex(mat, (float) to4.x, (float) to4.y, (float) to4.z)
+            .vertex(mat, to4.x, to4.y, to4.z)
             .color(255, 255, 255, 255)
             .texture(6 / tw, 64 / th)
             .overlay(OverlayTexture.DEFAULT_UV)
             .light(lightFrom)
-            .normal((float) -normal1.x, (float) -normal1.y, (float) -normal1.z)
+            .normal(-normal1.x, -normal1.y, -normal1.z)
             .next();
         buffer
-            .vertex(mat, (float) to3.x, (float) to3.y, (float) to3.z)
+            .vertex(mat, to3.x, to3.y, to3.z)
             .color(255, 255, 255, 255)
             .texture(4 / tw, 64 / th)
             .overlay(OverlayTexture.DEFAULT_UV)
             .light(lightFrom)
-            .normal((float) -normal1.x, (float) -normal1.y, (float) -normal1.z)
+            .normal(-normal1.x, -normal1.y, -normal1.z)
             .next();
 
         // side 4
         buffer
-            .vertex(mat, (float) from4.x, (float) from4.y, (float) from4.z)
+            .vertex(mat, from4.x, from4.y, from4.z)
             .color(255, 255, 255, 255)
             .texture(6 / tw, 0 / th)
             .overlay(OverlayTexture.DEFAULT_UV)
             .light(lightFrom)
-            .normal((float) -normal2.x, (float) -normal2.y, (float) -normal2.z)
+            .normal(-normal2.x, -normal2.y, -normal2.z)
             .next();
         buffer
-            .vertex(mat, (float) from1.x, (float) from1.y, (float) from1.z)
+            .vertex(mat, from1.x, from1.y, from1.z)
             .color(255, 255, 255, 255)
             .texture(8 / tw, 0 / th)
             .overlay(OverlayTexture.DEFAULT_UV)
             .light(lightFrom)
-            .normal((float) -normal2.x, (float) -normal2.y, (float) -normal2.z)
+            .normal(-normal2.x, -normal2.y, -normal2.z)
             .next();
         buffer
-            .vertex(mat, (float) to1.x, (float) to1.y, (float) to1.z)
+            .vertex(mat, to1.x, to1.y, to1.z)
             .color(255, 255, 255, 255)
             .texture(8 / tw, 64 / th)
             .overlay(OverlayTexture.DEFAULT_UV)
             .light(lightFrom)
-            .normal((float) -normal2.x, (float) -normal2.y, (float) -normal2.z)
+            .normal(-normal2.x, -normal2.y, -normal2.z)
             .next();
         buffer
-            .vertex(mat, (float) to4.x, (float) to4.y, (float) to4.z)
+            .vertex(mat, to4.x, to4.y, to4.z)
             .color(255, 255, 255, 255)
             .texture(6 / tw, 64 / th)
             .overlay(OverlayTexture.DEFAULT_UV)
             .light(lightFrom)
-            .normal((float) -normal2.x, (float) -normal2.y, (float) -normal2.z)
+            .normal(-normal2.x, -normal2.y, -normal2.z)
             .next();
     }
 }

@@ -31,6 +31,9 @@ dependencies {
 
 	// override old version of this that Rayon includes
 	modRuntime group: 'dev.inkwell', name: 'hermes', version: '1.1.0+1.17'
+
+	modImplementation group: 'net.dblsaiko.qcommon.croco', name: 'croco', version: '2.1.3'
+	include group: 'net.dblsaiko.qcommon.croco', name: 'croco', version: '2.1.3'
 }
 
 processResources {
