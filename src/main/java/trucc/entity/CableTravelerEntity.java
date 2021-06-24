@@ -2,7 +2,6 @@ package trucc.entity;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.MovementType;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.Packet;
 import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
@@ -49,15 +48,19 @@ public class CableTravelerEntity extends Entity {
         List<Vec3> segments = this.ct.getSegments(this.p1, this.p2);
 
         // having this only makes sense with a passenger
-        if (!this.world.isClient() && (!this.hasPassengers() || this.p1 == null || this.p2 == null || segments.isEmpty())) {
-            this.discard();
+        if (!this.hasPassengers() || this.p1 == null || this.p2 == null || segments.isEmpty()) {
+            if (!this.world.isClient()) {
+                this.discard();
+            }
+
             return;
         }
+
+        Vec3d dir = segments.get(segments.size() - 1).sub(segments.get(0)).toVec3d();
 
         this.stopRiding();
 
         float baseGravity = -0.05f;
-        this.move(MovementType.SELF, new Vec3d(0, baseGravity, 0));
 
         Vec3d pos = this.getPos();
         Vec3d velocity = this.getVelocity().add(0, baseGravity, 0);
@@ -71,9 +74,10 @@ public class CableTravelerEntity extends Entity {
             Vec3d seg = segment.toVec3d();
 
             if (last != null) {
-                double dot = last.subtract(pos).dotProduct(seg.subtract(pos));
+                double s1 = last.subtract(pos).dotProduct(dir);
+                double s2 = seg.subtract(pos).dotProduct(dir);
 
-                if (dot < 0) {
+                if (Math.signum(s1) != Math.signum(s2)) {
                     start = last;
                     end = seg;
                     break;
@@ -84,18 +88,35 @@ public class CableTravelerEntity extends Entity {
         }
 
         if (start == null) {
-            this.discard();
+            if (!this.world.isClient()) {
+                this.discard();
+            }
+
             return;
         }
 
         Vec3d relEnd = end.subtract(start).normalize();
         Vec3d relPos = pos.subtract(start);
-        Vec3d posOnCable = relEnd.multiply(relEnd.dotProduct(relPos)).add(start);
-        velocity = velocity.multiply(0.5).add(velocity.multiply(velocity.dotProduct(relEnd)).multiply(0.5));
-        velocity.multiply(0.98);
+        Vec3d posOnCable = projectOntoLine(start, relEnd, pos);
+        Vec3d right = relEnd.crossProduct(new Vec3d(0,1,0)).normalize();
+        Vec3d up = right.crossProduct(relEnd);
 
-        this.setPosition(pos);
+        velocity = projectInto(velocity, relEnd).multiply(0.99);
+
+        this.setPosition(posOnCable);
         this.setVelocity(velocity);
+    }
+
+    private static Vec3d projectOntoLine(Vec3d linePt, Vec3d lineDir, Vec3d pt) {
+        return linePt.add(projectInto(pt.subtract(linePt), lineDir));
+    }
+
+    private static Vec3d projectInto(Vec3d d, Vec3d dir) {
+        return dir.multiply(d.dotProduct(dir));
+    }
+
+    private static Vec3d reflect(Vec3d normal, Vec3d vec) {
+        return vec.subtract(projectInto(vec, normal).multiply(2));
     }
 
     @Override
