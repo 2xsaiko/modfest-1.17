@@ -2,6 +2,7 @@ package trucc.entity;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.Packet;
 import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
@@ -50,6 +51,7 @@ public class CableTravelerEntity extends Entity {
         // having this only makes sense with a passenger
         if (!this.hasPassengers() || this.p1 == null || this.p2 == null || segments.isEmpty()) {
             if (!this.world.isClient()) {
+                this.removeAllPassengers();
                 this.discard();
             }
 
@@ -89,6 +91,7 @@ public class CableTravelerEntity extends Entity {
 
         if (start == null) {
             if (!this.world.isClient()) {
+                this.removeAllPassengers();
                 this.discard();
             }
 
@@ -98,13 +101,25 @@ public class CableTravelerEntity extends Entity {
         Vec3d relEnd = end.subtract(start).normalize();
         Vec3d relPos = pos.subtract(start);
         Vec3d posOnCable = projectOntoLine(start, relEnd, pos);
-        Vec3d right = relEnd.crossProduct(new Vec3d(0,1,0)).normalize();
+        Vec3d right = relEnd.crossProduct(new Vec3d(0, 1, 0)).normalize();
         Vec3d up = right.crossProduct(relEnd);
 
         velocity = projectInto(velocity, relEnd).multiply(0.99);
 
         this.setPosition(posOnCable);
         this.setVelocity(velocity);
+    }
+
+    @Override
+    public Vec3d updatePassengerForDismount(LivingEntity passenger) {
+        passenger.setVelocity(this.getVelocity());
+        return passenger.getPos();
+    }
+
+    @Override
+    protected void removePassenger(Entity passenger) {
+        super.removePassenger(passenger);
+        passenger.setVelocity(this.getVelocity());
     }
 
     private static Vec3d projectOntoLine(Vec3d linePt, Vec3d lineDir, Vec3d pt) {

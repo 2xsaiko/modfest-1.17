@@ -4,6 +4,8 @@
   "package": "trucc.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
+    "ServerPlayerEntityMixin",
+    "LivingEntityMixin"
   ],
   "client": [
     "client.ClientPlayerEntityMixin",

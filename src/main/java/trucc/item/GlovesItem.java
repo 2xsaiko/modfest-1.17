@@ -44,6 +44,7 @@ public class GlovesItem extends Item {
                 CableTravelerEntity ent = Objects.requireNonNull(cableTraveler.create(world));
                 ent.setPosition(user.getEyePos());
                 world.spawnEntity(ent);
+                ent.setVelocity(user.getVelocity());
                 user.startRiding(ent);
             }
         }
