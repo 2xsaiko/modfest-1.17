@@ -59,6 +59,22 @@ public class RoadCameraHandler {
         }
 
         if (isCamera) {
+            while (TruccClient.getInstance().keyBindings.rotateCameraLeft.wasPressed()) {
+                if (cameraEntity.getYaw() > 45) {
+                    cameraEntity.setYaw(cameraEntity.getYaw() - 90);
+                } else {
+                    cameraEntity.setYaw(315);
+                }
+            }
+
+            while (TruccClient.getInstance().keyBindings.rotateCameraRight.wasPressed()) {
+                if (cameraEntity.getYaw() < 315) {
+                    cameraEntity.setYaw(cameraEntity.getYaw() + 90);
+                } else {
+                    cameraEntity.setYaw(45);
+                }
+            }
+
             if (scrollDelta == 1) {
                 zoom -= client.options.keySneak.isPressed() ? 10 : 5;
             } else if (scrollDelta == -1) {
