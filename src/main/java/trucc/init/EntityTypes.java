@@ -3,6 +3,7 @@ package trucc.init;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityDimensions;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
@@ -15,7 +16,7 @@ import trucc.entity.TruckEntity;
 import static trucc.Trucc.MOD_ID;
 
 public class EntityTypes {
-    public final EntityType<Entity> roadCameraEntity = FabricEntityTypeBuilder.create().entityFactory(RoadCameraEntity::new).build();
+    public final EntityType<RoadCameraEntity> roadCameraEntity = FabricEntityTypeBuilder.<RoadCameraEntity>create().entityFactory(RoadCameraEntity::new).build();
     public final EntityType<TruckEntity> truck = FabricEntityTypeBuilder.create().entityFactory(TruckEntity::new).build();
     public final EntityType<CableTravelerEntity> cableTraveler = FabricEntityTypeBuilder.create().entityFactory(CableTravelerEntity::new).dimensions(EntityDimensions.fixed(0.1f, 0.1f)).build();
 

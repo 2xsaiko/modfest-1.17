@@ -12,6 +12,7 @@ import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Quaternion;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3f;
+import trucc.client.RoadCameraHandler;
 
 /**
  * Adapted from Immersive Portals
@@ -22,7 +23,6 @@ public class TransformationManager {
     public static final MinecraftClient client = MinecraftClient.getInstance();
     
     public static boolean isIsometricView = false;
-    public static float isometricViewLength = 50;
     
     private static void updateCamera(MinecraftClient client) {
         Camera camera = client.gameRenderer.getCamera();
@@ -40,7 +40,7 @@ public class TransformationManager {
         int w = client.getWindow().getFramebufferWidth();
         int h = client.getWindow().getFramebufferHeight();
         
-        float wView = (isometricViewLength / h) * w;
+        float wView = ((float) RoadCameraHandler.zoom / h) * w;
         
         float near = -2000;
         float far = 2000;
@@ -48,8 +48,8 @@ public class TransformationManager {
         float left = -wView / 2;
         float right = wView / 2;
         
-        float top = isometricViewLength / 2;
-        float bottom = -isometricViewLength / 2;
+        float top = (float) RoadCameraHandler.zoom / 2;
+        float bottom = (float) -RoadCameraHandler.zoom / 2;
         
         float[] arr = new float[]{
             2.0f / (right - left), 0, 0, -(right + left) / (right - left),
@@ -66,7 +66,7 @@ public class TransformationManager {
     @Environment(EnvType.CLIENT)
     public static class RemoteCallables {
         public static void enableIsometricView(float viewLength) {
-            isometricViewLength = viewLength;
+            RoadCameraHandler.zoom = 50;
             isIsometricView = true;
             
             client.chunkCullingEnabled = false;

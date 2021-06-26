@@ -1,5 +1,7 @@
 package trucc;
 
+import net.fabricmc.fabric.api.client.screen.v1.ScreenMouseEvents;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.util.Identifier;
 
@@ -9,6 +11,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 
 import java.util.Objects;
 
+import trucc.client.RoadCameraHandler;
 import trucc.init.BlockEntityTypes;
 import trucc.init.Blocks;
 import trucc.init.EntityTypes;
@@ -38,6 +41,7 @@ public class Trucc {
 
         ServerTickEvents.END_WORLD_TICK.register(world -> CableTracker.get(world).tick());
         ClientTickEvents.END_WORLD_TICK.register(world -> CableTracker.get(world).tick());
+        ClientTickEvents.END_WORLD_TICK.register(world -> RoadCameraHandler.tick());
     }
 
     public static Trucc getInstance() {

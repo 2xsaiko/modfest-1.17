@@ -12,6 +12,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import trucc.client.RoadCameraHandler;
 import trucc.client.render.TransformationManager;
 import trucc.item.GlovesItem;
 
@@ -29,7 +30,7 @@ public abstract class EntityMixin {
     private void changeLookDirection(
             double cursorDeltaX, double cursorDeltaY, CallbackInfo ci
     ) {
-        if (world.isClient() && this.getEntityName().equals(MinecraftClient.getInstance().player.getEntityName()) && TransformationManager.isIsometricView) {
+        if (world.isClient() && this.getEntityName().equals(MinecraftClient.getInstance().player.getEntityName()) && RoadCameraHandler.isCamera) {
             ci.cancel();
         }
     }
