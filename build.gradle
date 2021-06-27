@@ -16,6 +16,10 @@ repositories {
 	maven { url 'https://hephaestus.dev/release' }
 }
 
+minecraft {
+	accessWidener = file("src/main/resources/trucc.aw")
+}
+
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft group: 'com.mojang', name: 'minecraft', version: project.minecraft_version
