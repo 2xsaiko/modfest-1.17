@@ -4,18 +4,29 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.TranslatableText;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.HitResult.Type;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.RaycastContext;
+import net.minecraft.world.RaycastContext.FluidHandling;
+import net.minecraft.world.RaycastContext.ShapeType;
 
 import trucc.client.RoadCameraHandler;
 import trucc.client.TruccClient;
 import trucc.client.init.KeyBindings;
 import trucc.entity.RoadCameraEntity;
+import trucc.util.SelectUtil.DeprojectResult;
 
 public class RoadBuilderScreen extends Screen {
+    private final TruccClient tc = TruccClient.getInstance();
+
     private boolean sneakPressed;
     private boolean forwardPressed;
     private boolean backPressed;
     private boolean leftPressed;
     private boolean rightPressed;
+
+    private BlockPos hitBlock;
 
     public RoadBuilderScreen() {
         super(new TranslatableText("trucc.gui.road_builder"));
@@ -24,13 +35,39 @@ public class RoadBuilderScreen extends Screen {
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         super.render(matrices, mouseX, mouseY, delta);
+
+        this.updateMouseOverBlock(mouseX, mouseY);
+
+        if (this.hitBlock != null) {
+            this.textRenderer.draw(matrices, "%d, %d, %d".formatted(this.hitBlock.getX(), this.hitBlock.getY(), this.hitBlock.getZ()), 2, 2, -1);
+        }
+    }
+
+    private void updateMouseOverBlock(int mouseX, int mouseY) {
+        MinecraftClient client = this.client;
+
+        if (client == null) {
+            return;
+        }
+
+        assert client.world != null;
+
+        DeprojectResult deprojectResult = this.tc.su.cursorToWorld(mouseX, mouseY);
+        RaycastContext ctx = new RaycastContext(deprojectResult.start(), deprojectResult.end(), ShapeType.OUTLINE, FluidHandling.NONE, client.player);
+        BlockHitResult r = client.world.raycast(ctx);
+
+        if (r.getType() == Type.BLOCK) {
+            this.hitBlock = r.getBlockPos();
+        } else {
+            this.hitBlock = null;
+        }
     }
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         RoadCameraEntity cameraEntity = RoadCameraHandler.cameraEntity;
         MinecraftClient client = this.client;
-        KeyBindings keyBindings = TruccClient.getInstance().keyBindings;
+        KeyBindings keyBindings = this.tc.keyBindings;
 
         if (cameraEntity == null || client == null) {
             return false;
@@ -148,7 +185,7 @@ public class RoadBuilderScreen extends Screen {
 
         if (amount == 1) {
             RoadCameraHandler.zoom -= this.sneakPressed ? 10 : 5;
-        } else if (mouseY == -1) {
+        } else if (amount == -1) {
             RoadCameraHandler.zoom += this.sneakPressed ? 10 : 5;
         }
 

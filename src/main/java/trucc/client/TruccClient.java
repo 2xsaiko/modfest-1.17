@@ -29,7 +29,7 @@ public class TruccClient {
         EntityRendererRegistry.INSTANCE.register(trucc.entityTypes.cableTraveler, CableTravelerRenderer::new);
 
         WorldRenderEvents.AFTER_ENTITIES.register(ctx -> {
-            tc.su.saveWorldMatrices(ctx.projectionMatrix(), ctx.matrixStack().peek().getModel());
+            tc.su.saveWorldMatrices(ctx.projectionMatrix(), ctx.matrixStack().peek().getModel(), ctx.camera().getPos());
             CableRenderer.get(ctx.world()).render(ctx);
         });
         HudRenderCallback.EVENT.register((matrixStack, tickDelta) -> {

@@ -16,14 +16,13 @@ public class SelectUtil {
             return null;
         }
 
-        Vec3 start = new Vec3(x, y, 0);
-        Vec3 end = new Vec3(x, y, 1);
+        Vec3 start = new Vec3(x, y, -1000);
+        Vec3 end = new Vec3(x, y, -3000);
         Vec3 startClipSpace = this.guiMvp.mul(start);
-        Vec3 endClipSpace = this.guiMvp.mul(start);
+        Vec3 endClipSpace = this.guiMvp.mul(end);
         Vec3 startWorld = this.worldMvp.invert().mul(startClipSpace);
         Vec3 endWorld = this.worldMvp.invert().mul(endClipSpace);
-        Vec3 dir = endWorld.sub(startWorld).getNormalized();
-        return new DeprojectResult(startWorld.toVec3d(), dir.toVec3d());
+        return new DeprojectResult(startWorld.toVec3d(), endWorld.toVec3d());
     }
 
     public Vec2f worldToCursor(Vec3d pos) {
@@ -42,12 +41,12 @@ public class SelectUtil {
         this.guiMvp = p.mul(mv);
     }
 
-    public void saveWorldMatrices(Matrix4f projection, Matrix4f modelview) {
+    public void saveWorldMatrices(Matrix4f projection, Matrix4f modelview, Vec3d cameraPos) {
         Mat4 p = Mat4.fromMatrix4f(projection);
-        Mat4 mv = Mat4.fromMatrix4f(modelview);
+        Mat4 mv = Mat4.fromMatrix4f(modelview).translate(Vec3.from(cameraPos.negate()));
         this.worldMvp = p.mul(mv);
     }
 
-    public record DeprojectResult(Vec3d pos, Vec3d dir) {
+    public record DeprojectResult(Vec3d start, Vec3d end) {
     }
 }
