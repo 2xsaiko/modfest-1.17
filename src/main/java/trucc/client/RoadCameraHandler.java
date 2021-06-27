@@ -12,7 +12,7 @@ public class RoadCameraHandler {
     public static float speed = 2;
     public static int zoom = 50;
     public static int minZoom = 70;
-    public static int maxZoom = 30;
+    public static int maxZoom = 15;
     private static Perspective prevPerspective = null;
     public static RoadCameraEntity cameraEntity = null;
     private static MinecraftClient client = MinecraftClient.getInstance();

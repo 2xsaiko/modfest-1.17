@@ -4,9 +4,11 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.TranslatableText;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult.Type;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.RaycastContext;
 import net.minecraft.world.RaycastContext.FluidHandling;
 import net.minecraft.world.RaycastContext.ShapeType;
@@ -39,7 +41,9 @@ public class RoadBuilderScreen extends Screen {
         this.updateMouseOverBlock(mouseX, mouseY);
 
         if (this.hitBlock != null) {
-            this.textRenderer.draw(matrices, "%d, %d, %d".formatted(this.hitBlock.getX(), this.hitBlock.getY(), this.hitBlock.getZ()), 2, 2, -1);
+            String isValid = client.world.isTopSolid(this.hitBlock, client.player) && client.world.getBlockState(this.hitBlock).isOpaque() && client.world.isAir(this.hitBlock.up()) ? Formatting.GREEN + "Valid" : Formatting.RED + "Invalid";
+            this.textRenderer.draw(matrices, "%s, %s".formatted(Formatting.GOLD + client.world.getBlockState(this.hitBlock).getBlock().getName().getString(), isValid), 2, 2, -1);
+            this.textRenderer.draw(matrices, "%d, %d, %d".formatted(this.hitBlock.getX(), this.hitBlock.getY(), this.hitBlock.getZ()), 2, 12, -1);
         }
     }
 
