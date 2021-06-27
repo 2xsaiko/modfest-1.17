@@ -1,17 +1,13 @@
 package trucc.mixin.client;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.Matrix4f;
+import net.minecraft.client.Mouse;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import trucc.client.RoadCameraHandler;
-import trucc.client.render.TransformationManager;
-import trucc.item.GlovesItem;
 
 @Mixin(MinecraftClient.class)
 public abstract class MinecraftClientMixin {
@@ -51,6 +47,18 @@ public abstract class MinecraftClientMixin {
     ) {
         if (RoadCameraHandler.isCamera) {
             ci.cancel();
+        }
+    }
+
+    @Redirect(
+            method = "openScreen(Lnet/minecraft/client/gui/screen/Screen;)V",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Mouse;lockCursor()V")
+    )
+    private void fixLockCursor(Mouse mouse) {
+        if (RoadCameraHandler.isCamera) {
+            mouse.unlockCursor();
+        } else {
+            mouse.lockCursor();
         }
     }
 }
