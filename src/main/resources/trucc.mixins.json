@@ -9,11 +9,7 @@
   ],
   "client": [
     "client.ClientPlayerEntityMixin",
-    "client.EntityMixin",
     "client.GameRendererMixin",
-    "client.MinecraftClientMixin",
-    "client.MouseMixin",
-    "client.PlayerInventoryMixin",
     "client.WorldRendererMixin"
   ],
   "injectors": {
