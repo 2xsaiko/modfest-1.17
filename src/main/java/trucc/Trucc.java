@@ -47,4 +47,8 @@ public class Trucc {
     public static Trucc getInstance() {
         return Objects.requireNonNull(INSTANCE);
     }
+    
+    public static Identifier id(String path) {
+        return new Identifier(MOD_ID, path);
+    }
 }
