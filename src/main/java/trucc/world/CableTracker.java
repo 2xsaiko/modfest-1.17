@@ -117,6 +117,7 @@ public class CableTracker {
 
     public void removeAll(BlockPos pos) {
         Collection<Set<BlockPos>> sets = this.byPos.get(pos);
+        Multimap<BlockPos, Set<BlockPos>> toRemove = HashMultimap.create();
 
         for (Set<BlockPos> set : sets) {
             this.connections.remove(set);
@@ -124,11 +125,11 @@ public class CableTracker {
             this.waiting.remove(set);
 
             for (BlockPos blockPos : set) {
-                // will this cry because I'm technically iterating over byPos
-                // here?
-                this.byPos.remove(blockPos, set);
+                toRemove.put(blockPos, set);
             }
         }
+
+        toRemove.forEach(this.byPos::remove);
     }
 
     public List<Vec3> getSegments(BlockPos pos1, BlockPos pos2) {
