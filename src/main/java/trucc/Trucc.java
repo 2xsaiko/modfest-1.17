@@ -1,10 +1,7 @@
 package trucc;
 
-import net.fabricmc.fabric.api.client.screen.v1.ScreenMouseEvents;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.util.Identifier;
-
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -16,6 +13,7 @@ import trucc.init.BlockEntityTypes;
 import trucc.init.Blocks;
 import trucc.init.EntityTypes;
 import trucc.init.Items;
+import trucc.network.ServerNetworkHandler;
 import trucc.world.CableTracker;
 
 public class Trucc {
@@ -28,6 +26,7 @@ public class Trucc {
     public final Items items = new Items(this.itemGroup, this.blocks);
     public final BlockEntityTypes blockEntityTypes = new BlockEntityTypes(this.blocks);
     public final EntityTypes entityTypes = new EntityTypes();
+    public final ServerNetworkHandler serverNetworkHandler = new ServerNetworkHandler();
 
     public static void initialize() {
         Trucc instance = new Trucc();
@@ -40,14 +39,16 @@ public class Trucc {
         INSTANCE = instance;
 
         ServerTickEvents.END_WORLD_TICK.register(world -> CableTracker.get(world).tick());
-        ClientTickEvents.END_WORLD_TICK.register(world -> CableTracker.get(world).tick());
-        ClientTickEvents.END_WORLD_TICK.register(world -> RoadCameraHandler.tick());
+        ClientTickEvents.END_WORLD_TICK.register(world -> {
+            CableTracker.get(world).tick();
+            RoadCameraHandler.tick();
+        });
     }
 
     public static Trucc getInstance() {
         return Objects.requireNonNull(INSTANCE);
     }
-    
+
     public static Identifier id(String path) {
         return new Identifier(MOD_ID, path);
     }

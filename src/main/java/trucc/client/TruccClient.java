@@ -1,6 +1,7 @@
 package trucc.client;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendereregistry.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
@@ -10,9 +11,14 @@ import trucc.client.init.KeyBindings;
 import trucc.client.render.CableRenderer;
 import trucc.client.render.entity.CableTravelerRenderer;
 import trucc.client.render.entity.TruckRenderer;
+import trucc.network.CableTravelerDismountPacket;
+import trucc.network.ClientNetworkHandler;
+import trucc.util.ClientNetworkUtil;
 import trucc.util.SelectUtil;
 
 import java.util.Objects;
+
+import static trucc.Trucc.id;
 
 public class TruccClient {
     public final KeyBindings keyBindings = new KeyBindings();
@@ -20,6 +26,7 @@ public class TruccClient {
     private static TruccClient INSTANCE;
 
     public final SelectUtil su = new SelectUtil();
+    public final ClientNetworkHandler networkHandler = new ClientNetworkHandler();
 
     public static void initialize() {
         Trucc trucc = Trucc.getInstance();
@@ -35,6 +42,8 @@ public class TruccClient {
         HudRenderCallback.EVENT.register((matrixStack, tickDelta) -> {
             tc.su.saveGuiMatrices(RenderSystem.getProjectionMatrix(), matrixStack.peek().getModel());
         });
+
+        ClientPlayNetworking.registerGlobalReceiver(id("dismount"), ClientNetworkUtil.map(tc.networkHandler::handleCableTravelerDismount, CableTravelerDismountPacket::read));
 
         INSTANCE = tc;
     }

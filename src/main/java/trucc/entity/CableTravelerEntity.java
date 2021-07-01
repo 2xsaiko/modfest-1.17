@@ -120,6 +120,7 @@ public class CableTravelerEntity extends Entity {
     protected void removePassenger(Entity passenger) {
         super.removePassenger(passenger);
         passenger.setVelocity(this.getVelocity());
+        passenger.velocityDirty = true;
     }
 
     private static Vec3d projectOntoLine(Vec3d linePt, Vec3d lineDir, Vec3d pt) {
@@ -143,6 +144,18 @@ public class CableTravelerEntity extends Entity {
         }
 
         return -primaryPassenger.getStandingEyeHeight() - this.getHeight();
+    }
+
+    public void startJumping() {
+        Entity e = this.getPrimaryPassenger();
+        Vec3d jumpDirection = Vec3d.ZERO;
+
+        if (e != null) {
+            jumpDirection = e.getRotationVector();
+        }
+
+        this.setVelocity(this.getVelocity().add(0.0, 0.5, 0.0).add(jumpDirection.multiply(0.5)));
+        this.removeAllPassengers();
     }
 
     @Nullable

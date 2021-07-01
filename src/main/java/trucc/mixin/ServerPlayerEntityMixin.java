@@ -1,7 +1,6 @@
 package trucc.mixin;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket.Flag;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 
@@ -12,6 +11,11 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import trucc.entity.CableTravelerEntity;
+import trucc.ext.ServerPlayNetworkHandlerExt;
+import trucc.network.CableTravelerDismountPacket;
+import trucc.util.NetworkUtil;
+
+import static trucc.Trucc.id;
 
 @Mixin(ServerPlayerEntity.class)
 public class ServerPlayerEntityMixin {
@@ -27,7 +31,16 @@ public class ServerPlayerEntityMixin {
         ServerPlayerEntity self = (ServerPlayerEntity) (Object) this;
 
         if (entity instanceof CableTravelerEntity) {
-            this.networkHandler.requestTeleport(self.getX(), self.getY(), self.getZ(), self.getYaw(), self.getPitch(), Flag.getFlags(-1), true);
+            int teleportId = ServerPlayNetworkHandlerExt.from(this.networkHandler)
+                .requestTeleportId(self.getPos());
+
+            // TODO: make this not suck
+            NetworkUtil.send(
+                new CableTravelerDismountPacket(teleportId, self.getPos(), self.getVelocity()),
+                self,
+                id("dismount"),
+                CableTravelerDismountPacket::write
+            );
             ci.cancel();
         }
     }
