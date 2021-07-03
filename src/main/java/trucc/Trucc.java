@@ -2,13 +2,11 @@ package trucc;
 
 import net.minecraft.item.ItemGroup;
 import net.minecraft.util.Identifier;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 
 import java.util.Objects;
 
-import trucc.client.RoadCameraHandler;
 import trucc.init.BlockEntityTypes;
 import trucc.init.Blocks;
 import trucc.init.EntityTypes;
