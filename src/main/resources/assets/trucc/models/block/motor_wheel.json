@@ -45,8 +45,8 @@
       }
     },
     {
-      "from": [7, 8, 4],
-      "to": [9, 12, 6],
+      "from": [7, 8, 3],
+      "to": [9, 12, 5],
       "faces": {
         "north": { "uv": [0, 0, 2, 4], "texture": "#inner_top" },
         "east": { "uv": [6, 0, 8, 4], "texture": "#inner_top" },
