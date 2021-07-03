@@ -25,6 +25,7 @@ fun loadMaterialLibrary(rl: Identifier): Map<String, Material>? {
             mat?.also { mats += name to it }
             mat = fallbackMaterial
             name = readCustom(it, 1, 1, 0)[0]
+            continue
         }
         if (mat == null) {
             logger.warn("Ignoring line '$it' because no material is currently being defined")

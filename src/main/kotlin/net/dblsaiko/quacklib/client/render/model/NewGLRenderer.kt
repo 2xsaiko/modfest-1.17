@@ -13,11 +13,12 @@ import net.dblsaiko.quacklib.model.Object
 import net.dblsaiko.quacklib.model.fallbackMaterial
 import net.minecraft.client.MinecraftClient
 import net.minecraft.util.Identifier
+import net.minecraft.util.math.Matrix4f
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL30.*
 
-val logger = LogManager.getLogger()
+private val logger = LogManager.getLogger()
 
 private val dataBuffer = BufferUtils.createByteBuffer(0x100000)
 
@@ -46,7 +47,7 @@ class NewGLRenderer(val obj: OBJRoot, val textureOverrides: Map<String, String> 
     private val textures = mutableListOf<Int>()
     private var vcount = 0
 
-    private var attrTexture = 0
+    // private var attrTexture = 0
     private var attrObject = 0
     private var attrPosition = 0
     private var attrNormal = 0
@@ -55,10 +56,11 @@ class NewGLRenderer(val obj: OBJRoot, val textureOverrides: Map<String, String> 
     // private var attrLightmapUv = 0
     private var attrColor = 0
 
-    private var uniformLightmap = 0
-    private var uniformLightmapC = 0
     private var uniformTransforms = 0
+    private var uniformMvp = 0
+    private var uniformLightmap = 0
     private var uniformTextures = 0
+    private var uniformLightmapC = 0
 
     // private var fallback: OBJGLRenderer? = null
 
@@ -79,7 +81,7 @@ class NewGLRenderer(val obj: OBJRoot, val textureOverrides: Map<String, String> 
         //    fallback?.transformGroup(name, mat)
     }
 
-    fun draw(light: Int = 0xF000F0) {
+    fun draw(p: Matrix4f, mv: Matrix4f, light: Int = 0xF000F0) {
         if (!init) {
             initBuf()
             initShader(objPos.size + 1, textures.size)
@@ -103,6 +105,14 @@ class NewGLRenderer(val obj: OBJRoot, val textureOverrides: Map<String, String> 
 
             glUniformMatrix4(uniformTransforms, true, fb)
 
+            // write MVP
+            fb.clear()
+            val mvp = p.copy()
+            mvp.multiply(mv)
+            mvp.writeColumnMajor(fb)
+            fb.flip()
+            glUniformMatrix4(uniformMvp, false, fb)
+
             // write textures
             for ((index, id) in textures.withIndex()) {
                 activeTexture(GL_TEXTURE2 + index)
@@ -123,7 +133,7 @@ class NewGLRenderer(val obj: OBJRoot, val textureOverrides: Map<String, String> 
             val y = ((light / 65536) + 8) * 0.00390625f
             glUniform2f(uniformLightmapC, x, y)
 
-            glEnableVertexAttribArray(attrTexture)
+            // glEnableVertexAttribArray(attrTexture)
             glEnableVertexAttribArray(attrObject)
             glEnableVertexAttribArray(attrPosition)
             glEnableVertexAttribArray(attrNormal)
@@ -133,7 +143,7 @@ class NewGLRenderer(val obj: OBJRoot, val textureOverrides: Map<String, String> 
 
             glDrawArrays(GL_TRIANGLES, 0, vcount)
 
-            glDisableVertexAttribArray(attrTexture)
+            // glDisableVertexAttribArray(attrTexture)
             glDisableVertexAttribArray(attrObject)
             glDisableVertexAttribArray(attrPosition)
             glDisableVertexAttribArray(attrNormal)
@@ -234,6 +244,7 @@ class NewGLRenderer(val obj: OBJRoot, val textureOverrides: Map<String, String> 
 
     private fun initShader(objectCount: Int, textureCount: Int) {
         val vshs = generateVShader(objectCount)
+        require(textureCount == 1) { "1 textures max because GLSL broke" }
         val fshs = generateFShader(textureCount)
         shader = mkShader(vshs, fshs)
         if (shader == 0) return
@@ -244,7 +255,7 @@ class NewGLRenderer(val obj: OBJRoot, val textureOverrides: Map<String, String> 
         glBindBuffer(GL_ARRAY_BUFFER, buffer)
         glBindVertexArray(vao)
 
-        attrTexture = glGetAttribLocation(shader, "texture")
+        // attrTexture = glGetAttribLocation(shader, "texture")
         attrObject = glGetAttribLocation(shader, "object")
         attrPosition = glGetAttribLocation(shader, "position")
         attrNormal = glGetAttribLocation(shader, "normal")
@@ -252,12 +263,13 @@ class NewGLRenderer(val obj: OBJRoot, val textureOverrides: Map<String, String> 
         // attrLightmapUv = glGetAttribLocation(prog, "lightmapUv")
         attrColor = glGetAttribLocation(shader, "color")
 
-        uniformLightmap = glGetUniformLocation(shader, "lightmap")
-        uniformLightmapC = glGetUniformLocation(shader, "lightmapCoord")
-        uniformTextures = glGetUniformLocation(shader, "textures")
         uniformTransforms = glGetUniformLocation(shader, "transforms")
+        uniformMvp = glGetUniformLocation(shader, "mvp")
+        uniformLightmap = glGetUniformLocation(shader, "lightmap")
+        uniformTextures = glGetUniformLocation(shader, "textures")
+        uniformLightmapC = glGetUniformLocation(shader, "lightmapCoord")
 
-        glVertexAttribIPointer(attrTexture, 1, GL_BYTE, vdataSize, 0)
+        // glVertexAttribIPointer(attrTexture, 1, GL_BYTE, vdataSize, 0)
         glVertexAttribIPointer(attrObject, 1, GL_BYTE, vdataSize, 1)
         glVertexAttribPointer(attrPosition, 3, GL_FLOAT, false, vdataSize, 2)
         glVertexAttribPointer(attrNormal, 3, GL_FLOAT, false, vdataSize, 14)
@@ -271,58 +283,60 @@ class NewGLRenderer(val obj: OBJRoot, val textureOverrides: Map<String, String> 
     }
 
     private fun generateVShader(objectCount: Int): String =
-        """#version 130
-           |
-           |uniform mat4[$objectCount] transforms;
-           |
-           |in int texture;
-           |in int object;
-           |in vec3 position;
-           |in vec3 normal;
-           |in vec2 uv;
-           |in vec4 color;
-           |
-           |flat out int texture1;
-           |out vec3 normal1;
-           |out vec2 uv1;
-           |out vec4 color1;
-           |
-           |void main() {
-           |  texture1 = texture;
-           |  mat4 tr = transforms[object];
-           |  normal1 = normalize(vec3(tr * vec4(normal, 1.0)));
-           |  uv1 = uv;
-           |  color1 = color;
-           |
-           |  gl_Position = gl_ModelViewProjectionMatrix * tr * vec4(position, 1.0);
-           |}
-    """.trimMargin()
+        """#version 150
+          |
+          |uniform mat4[$objectCount] transforms;
+          |uniform mat4 mvp;
+          |
+          |in int texture;
+          |in int object;
+          |in vec3 position;
+          |in vec3 normal;
+          |in vec2 uv;
+          |in vec4 color;
+          |
+          |flat out int texture1;
+          |out vec3 normal1;
+          |out vec2 uv1;
+          |out vec4 color1;
+          |
+          |void main() {
+          |  texture1 = texture;
+          |  mat4 tr = transforms[object];
+          |  normal1 = normalize(vec3(tr * vec4(normal, 1.0)));
+          |  uv1 = uv;
+          |  color1 = color;
+          |
+          |  gl_Position = mvp * tr * vec4(position, 1.0);
+          |}
+        """.trimMargin()
 
     private fun generateFShader(textureCount: Int): String =
-        """#version 130
-           |
-           |uniform sampler2D lightmap;
-           |uniform sampler2D[$textureCount] textures;
-           |uniform vec2 lightmapCoord;
-           |
-           |flat in int texture1;
-           |in vec3 normal1;
-           |in vec2 uv1;
-           |in vec4 color1;
-           |
-           |out vec4 color;
-           |
-           |void main() {
-           |  vec4 texColor = texture(textures[texture1], uv1);
-           |  vec4 lightmapColor = texture(lightmap, lightmapCoord);
-           |  vec4 materialColor = color1;
-           |
-           |  vec3 lightAngle = vec3(0, -1, 0);
-           |  float lightStr = 0.7 + 0.3 * (dot(normal1, -lightAngle) + 1) / 2;
-           |
-           |  color = texColor * lightmapColor * materialColor * vec4(lightStr, lightStr, lightStr, 1);
-           |}
-    """.trimMargin()
+        """#version 150
+          |
+          |uniform sampler2D lightmap;
+          |uniform sampler2D[$textureCount] textures;
+          |uniform vec2 lightmapCoord;
+          |
+          |flat in int texture1;
+          |in vec3 normal1;
+          |in vec2 uv1;
+          |in vec4 color1;
+          |
+          |out vec4 color;
+          |
+          |void main() {
+          |  // vec4 texColor = texture(textures[texture1], uv1);
+          |  vec4 texColor = texture(textures[0], uv1);
+          |  vec4 lightmapColor = texture(lightmap, lightmapCoord);
+          |  vec4 materialColor = color1;
+          |
+          |  vec3 lightAngle = vec3(0, -1, 0);
+          |  float lightStr = 0.7 + 0.3 * (dot(normal1, -lightAngle) + 1) / 2;
+          |
+          |  color = texColor * lightmapColor * materialColor * vec4(lightStr, lightStr, lightStr, 1);
+          |}
+        """.trimMargin()
 
     private fun getRealIndex(total: Int, a: Int) = when {
         a > 0 -> a - 1

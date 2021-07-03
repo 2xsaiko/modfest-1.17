@@ -10,6 +10,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import trucc.Trucc;
 import trucc.client.init.KeyBindings;
 import trucc.client.render.CableRenderer;
+import trucc.client.render.WheelRenderer;
 import trucc.client.render.entity.CableTravelerRenderer;
 import trucc.client.render.entity.TruckRenderer;
 import trucc.network.CableTravelerDismountPacket;
@@ -40,6 +41,7 @@ public class TruccClient {
         WorldRenderEvents.AFTER_ENTITIES.register(ctx -> {
             tc.su.saveWorldMatrices(ctx.projectionMatrix(), ctx.matrixStack().peek().getModel(), ctx.camera().getPos());
             CableRenderer.get(ctx.world()).render(ctx);
+            WheelRenderer.get(ctx.world()).render(ctx);
         });
         HudRenderCallback.EVENT.register((matrixStack, tickDelta) -> {
             tc.su.saveGuiMatrices(RenderSystem.getProjectionMatrix(), matrixStack.peek().getModel());
