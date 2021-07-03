@@ -39,10 +39,6 @@ public class Trucc {
         INSTANCE = instance;
 
         ServerTickEvents.END_WORLD_TICK.register(world -> CableTracker.get(world).tick());
-        ClientTickEvents.END_WORLD_TICK.register(world -> {
-            CableTracker.get(world).tick();
-            RoadCameraHandler.tick();
-        });
     }
 
     public static Trucc getInstance() {

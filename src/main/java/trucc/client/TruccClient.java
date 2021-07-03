@@ -1,6 +1,7 @@
 package trucc.client;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendereregistry.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
@@ -15,6 +16,7 @@ import trucc.network.CableTravelerDismountPacket;
 import trucc.network.ClientNetworkHandler;
 import trucc.util.ClientNetworkUtil;
 import trucc.util.SelectUtil;
+import trucc.world.CableTracker;
 
 import java.util.Objects;
 
@@ -44,6 +46,11 @@ public class TruccClient {
         });
 
         ClientPlayNetworking.registerGlobalReceiver(id("dismount"), ClientNetworkUtil.map(tc.networkHandler::handleCableTravelerDismount, CableTravelerDismountPacket::read));
+
+        ClientTickEvents.END_WORLD_TICK.register(world -> {
+            CableTracker.get(world).tick();
+            RoadCameraHandler.tick();
+        });
 
         INSTANCE = tc;
     }
