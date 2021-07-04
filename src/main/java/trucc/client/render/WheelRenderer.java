@@ -88,7 +88,7 @@ public class WheelRenderer {
         // }
         if (shittyRenderer == null) {
             OBJRoot model = ObjparserKt.orEmpty(ObjparserKt.loadOBJ(id("models/block/wheel.obj")));
-            Map<String, String> overrides = Map.of("Material", "trucc:textures/block/wheel.png");
+            Map<String, String> overrides = Map.of("Material", "trucc:textures/block/wheel2.png");
             shittyRenderer = new ObjGlRenderer(model, overrides);
         }
     }

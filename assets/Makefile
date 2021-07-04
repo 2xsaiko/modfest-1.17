@@ -1,7 +1,16 @@
 RP_ROOT = ../src/main/resources/
 
 ITEM_TEXTURES = gloves
-BLOCK_TEXTURES = hook motor_flat motor_front motor_inner motor_inner_top motor_left motor_right wheel
+BLOCK_TEXTURES = \
+	hook \
+	motor_flat \
+	motor_front \
+	motor_inner \
+	motor_inner_top \
+	motor_left \
+	motor_right \
+	wheel2
+
 MISC_TEXTURES = cable
 
 ITEM_TEXTURES_PNG = $(ITEM_TEXTURES:=.png)
