@@ -1,12 +1,9 @@
 package trucc.init;
 
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityDimensions;
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
-
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 
 import trucc.entity.CableTravelerEntity;
