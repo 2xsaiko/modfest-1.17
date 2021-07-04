@@ -9,7 +9,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.state.StateManager.Builder;
 import net.minecraft.state.property.Properties;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
@@ -25,16 +24,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.WeakHashMap;
 import java.util.stream.Collectors;
 
-import trucc.Trucc;
 import trucc.block.entity.ZiplineAnchorBlockEntity;
+import trucc.util.CableConnectUtil;
 
-public class ZiplineAnchorBlock extends Block implements BlockEntityProvider {
-    public static final UUID BLOCK_UUID = UUID.fromString("8f8184c2-5c59-4a89-8f86-2b254a3cfa71");
+import net.dblsaiko.qcommon.croco.Vec3;
 
+public class ZiplineAnchorBlock extends Block implements BlockEntityProvider, BlockCablePlacement {
     private static final Map<Direction, VoxelShape> SHAPES;
     private static final Map<Direction, VoxelShape> OUTLINE_SHAPES;
 
@@ -46,35 +44,16 @@ public class ZiplineAnchorBlock extends Block implements BlockEntityProvider {
 
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        if (player.getStackInHand(hand).getItem() != Trucc.getInstance().items.steelCable) {
-            return super.onUse(state, world, pos, player, hand, hit);
-        }
-
-        if (world.isClient()) {
+        if (CableConnectUtil.onConnectUse(world, pos, player, hand)) {
             return ActionResult.SUCCESS;
         }
 
-        BlockPos first = this.queuedLinkActions.remove(player);
+        return super.onUse(state, world, pos, player, hand, hit);
+    }
 
-        if (first == null) {
-            this.queuedLinkActions.put(player, pos);
-            player.sendSystemMessage(new TranslatableText("trucc.link.start"), BLOCK_UUID);
-            return ActionResult.SUCCESS;
-        } else {
-            BlockEntity be = world.getBlockEntity(pos);
-
-            if (be instanceof ZiplineAnchorBlockEntity anchor) {
-                if (anchor.link(first, player)) {
-                    player.sendSystemMessage(new TranslatableText("trucc.link.success"), BLOCK_UUID);
-                } else {
-                    player.sendSystemMessage(new TranslatableText("trucc.link.failure"), BLOCK_UUID);
-                }
-            } else {
-                player.sendSystemMessage(new TranslatableText("trucc.link.failure"), BLOCK_UUID);
-            }
-
-            return ActionResult.SUCCESS;
-        }
+    @Override
+    public Vec3 getWireOffset(World world, BlockPos pos, BlockState state, BlockPos other) {
+        return Vec3.from(state.get(Properties.FACING).getOpposite().getVector()).mul(10 / 32f);
     }
 
     @Override

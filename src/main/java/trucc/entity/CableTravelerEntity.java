@@ -31,6 +31,49 @@ public class CableTravelerEntity extends Entity {
         this.ct = CableTracker.get(world);
     }
 
+    public boolean findCable() {
+        // copied from tick, time is running out to make this clean
+        if (this.p1 == null || this.p2 == null) {
+            Collection<Set<BlockPos>> cablesInBlock = this.ct.getCablesInBlock(this.getBlockPos());
+            Iterator<Set<BlockPos>> iterator = cablesInBlock.iterator();
+
+            if (iterator.hasNext()) {
+                Iterator<BlockPos> iterator1 = iterator.next().iterator();
+                this.p1 = iterator1.next();
+                this.p2 = iterator1.next();
+            }
+        }
+
+        List<Vec3> segments = this.ct.getSegments(this.p1, this.p2);
+
+        Vec3d dir = segments.get(segments.size() - 1).sub(segments.get(0)).toVec3d();
+
+        Vec3d pos = this.getPos();
+
+        Vec3d start = null;
+        Vec3d end = null;
+        Vec3d last = null;
+
+        for (Vec3 segment : segments) {
+            Vec3d seg = segment.toVec3d();
+
+            if (last != null) {
+                double s1 = last.subtract(pos).dotProduct(dir);
+                double s2 = seg.subtract(pos).dotProduct(dir);
+
+                if (Math.signum(s1) != Math.signum(s2)) {
+                    start = last;
+                    end = seg;
+                    break;
+                }
+            }
+
+            last = seg;
+        }
+
+        return start != null;
+    }
+
     @Override
     public void tick() {
         this.attemptTickInVoid();
@@ -57,6 +100,9 @@ public class CableTravelerEntity extends Entity {
 
             return;
         }
+
+        float speed = this.ct.getSpeed(this.p1, this.p2);
+        BlockPos origin = this.ct.getOrigin(this.p1, this.p2);
 
         Vec3d dir = segments.get(segments.size() - 1).sub(segments.get(0)).toVec3d();
 
@@ -104,7 +150,12 @@ public class CableTravelerEntity extends Entity {
         Vec3d right = relEnd.crossProduct(new Vec3d(0, 1, 0)).normalize();
         Vec3d up = right.crossProduct(relEnd);
 
-        velocity = projectInto(velocity, relEnd).multiply(0.99);
+        if (speed == 0 || origin == null) {
+            velocity = projectInto(velocity, relEnd).multiply(0.99);
+        } else {
+            BlockPos other = origin.equals(this.p1) ? this.p2 : this.p1;
+            velocity = Vec3.from(other).sub(Vec3.from(origin)).getNormalized().mul(speed).toVec3d();
+        }
 
         this.setPosition(posOnCable);
         this.setVelocity(velocity);

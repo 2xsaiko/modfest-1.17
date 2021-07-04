@@ -43,6 +43,11 @@ public class GlovesItem extends Item {
             if (!CableTracker.get(world).getCablesInBlock(new BlockPos(user.getEyePos())).isEmpty()) {
                 CableTravelerEntity ent = Objects.requireNonNull(cableTraveler.create(world));
                 ent.setPosition(user.getEyePos());
+
+                if (!ent.findCable()) {
+                    return;
+                }
+
                 world.spawnEntity(ent);
                 ent.setVelocity(user.getVelocity());
                 user.startRiding(ent);
