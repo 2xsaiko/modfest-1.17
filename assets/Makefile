@@ -1,6 +1,6 @@
 RP_ROOT = ../src/main/resources/
 
-ITEM_TEXTURES = gloves
+ITEM_TEXTURES = gloves steel_cable
 BLOCK_TEXTURES = \
 	hook \
 	motor_flat \
