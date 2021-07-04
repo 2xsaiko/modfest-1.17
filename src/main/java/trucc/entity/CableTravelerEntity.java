@@ -113,7 +113,7 @@ public class CableTravelerEntity extends Entity {
         float baseGravity = -0.05f;
 
         Vec3d pos = this.getPos();
-        Vec3d velocity = this.getVelocity().add(0, baseGravity, 0);
+        Vec3d velocity = this.getVelocity();
         pos = pos.add(velocity);
 
         Vec3d start = null;
@@ -153,11 +153,13 @@ public class CableTravelerEntity extends Entity {
         Vec3d up = right.crossProduct(relEnd);
 
         if (speed == 0 || origin == null) {
-            velocity = projectInto(velocity, relEnd).multiply(0.99);
+            velocity = velocity.add(0, baseGravity, 0);
         } else {
             BlockPos other = origin.equals(this.p1) ? this.p2 : this.p1;
-            velocity = Vec3.from(other).sub(Vec3.from(origin)).getNormalized().mul(speed).toVec3d();
+            velocity = Vec3.from(other).sub(Vec3.from(origin)).getNormalized().mul(speed * 0.1f).toVec3d();
         }
+
+        velocity = projectInto(velocity, relEnd).multiply(0.99);
 
         this.setPosition(posOnCable);
         this.setVelocity(velocity);
