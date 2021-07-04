@@ -3,5 +3,9 @@
   "block.trucc.zipline_anchor": "Zipline Anchor",
   "item.trucc.gloves": "Gloves",
   "item.trucc.steel_cable": "Steel Cable",
-  "itemGroup.trucc.all": "T.R.U.C.C."
+  "itemGroup.trucc.all": "T.R.U.C.C.",
+  "trucc.gui.road_builder": "Road Builder",
+  "trucc.link.failure": "Link failed",
+  "trucc.link.start": "Link started",
+  "trucc.link.success": "Link succeeded"
 }
