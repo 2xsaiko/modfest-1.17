@@ -38,13 +38,13 @@ public class RoadBuilderScreen extends Screen {
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         super.render(matrices, mouseX, mouseY, delta);
 
-        this.updateMouseOverBlock(mouseX, mouseY);
-
-        if (this.hitBlock != null) {
-            String isValid = client.world.isTopSolid(this.hitBlock, client.player) && client.world.getBlockState(this.hitBlock).isOpaque() && client.world.isAir(this.hitBlock.up()) ? Formatting.GREEN + "Valid" : Formatting.RED + "Invalid";
-            this.textRenderer.draw(matrices, "%s, %s".formatted(Formatting.GOLD + client.world.getBlockState(this.hitBlock).getBlock().getName().getString(), isValid), 2, 2, -1);
-            this.textRenderer.draw(matrices, "%d, %d, %d".formatted(this.hitBlock.getX(), this.hitBlock.getY(), this.hitBlock.getZ()), 2, 12, -1);
-        }
+        // this.updateMouseOverBlock(mouseX, mouseY);
+        //
+        // if (this.hitBlock != null) {
+        //     String isValid = client.world.isTopSolid(this.hitBlock, client.player) && client.world.getBlockState(this.hitBlock).isOpaque() && client.world.isAir(this.hitBlock.up()) ? Formatting.GREEN + "Valid" : Formatting.RED + "Invalid";
+        //     this.textRenderer.draw(matrices, "%s, %s".formatted(Formatting.GOLD + client.world.getBlockState(this.hitBlock).getBlock().getName().getString(), isValid), 2, 2, -1);
+        //     this.textRenderer.draw(matrices, "%d, %d, %d".formatted(this.hitBlock.getX(), this.hitBlock.getY(), this.hitBlock.getZ()), 2, 12, -1);
+        // }
     }
 
     private void updateMouseOverBlock(int mouseX, int mouseY) {
