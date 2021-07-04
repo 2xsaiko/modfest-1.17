@@ -46,6 +46,8 @@ public class CableTravelerEntity extends Entity {
 
         List<Vec3> segments = this.ct.getSegments(this.p1, this.p2);
 
+        if (segments.size() < 2) return false;
+
         Vec3d dir = segments.get(segments.size() - 1).sub(segments.get(0)).toVec3d();
 
         Vec3d pos = this.getPos();
